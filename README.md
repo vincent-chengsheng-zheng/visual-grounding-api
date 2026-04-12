@@ -1,31 +1,25 @@
-# visual-grounding-api — Handover Document
-> For: Next developer taking over enterprise repo
-> Date: Apr 12, 2026
-> Deadline: **Apr 17, 2026 (11:59pm)**
+# visual-grounding-api — Enterprise Handover
 > Course: 61.502 Deep Learning for Enterprise
+> Deadline: **Apr 17, 2026 (11:59pm)**
+> Last updated: Apr 12, 2026
 
 ---
 
-## Context
+## ⚠️ READ THIS FIRST
 
-This repo is the **enterprise version** of the GenAI project (`spatial-llava` / `multimodal-grounding-research`).
-
-The core research is already done — models trained, evaluated, results saved. Your job is to:
-1. Set up FastAPI deployment
-2. Add Docker support
-3. Generate training curves
-4. Write the enterprise report (10-15 pages)
+The core research is **fully done** — models trained, evaluated, results saved.
+Your job is **deployment + report only**. Do not retrain anything.
 
 ---
 
-## Where to Find Everything
+## Trained Weights (Google Drive)
 
-### Trained Model Weights (Google Drive)
-Checkpoints are too large for GitHub. Download from Google Drive:
-- `checkpoints/main/best.pth` — 98MB (LoRA + MLP head, IoU=0.386)
-- `checkpoints/ablation/best.pth` — 26MB (MLP head only, IoU=0.284)
+Download before starting anything:
 
-> **TODO: Insert Google Drive link here after upload**
+| Checkpoint | Size | IoU | Link |
+|---|---|---|---|
+| `main_best.pth` (LoRA + MLP head) | 98MB | 0.386 | [Download](https://drive.google.com/file/d/1A_aBxnWJHOu7sH5iG5TADxeMpCwImoaV/view?usp=sharing) |
+| `ablation_best.pth` (MLP head only) | 26MB | 0.284 | [Download](https://drive.google.com/file/d/1VthezY5Q1ND5EPLPFe6pF6CJEmCYVGg3/view?usp=sharing) |
 
 Place them at:
 ```
@@ -35,34 +29,253 @@ visual-grounding-api/
     └── ablation/best.pth
 ```
 
-### Cluster Access
+---
+
+## Cluster Access
+
 ```
 Host : login2.gpucluster.sutd.edu.sg:8888
 User : jovyan
 GPU  : A100-SXM4-80GB
-
-# Repo also lives on cluster at:
-/tmp/SPATIAL-LLAVA/        ← active (clears on restart!)
-~/SPATIAL-LLAVA_APR10/     ← backup (persistent)
 ```
 
-### Results Already Done
-All evaluation results are in the repo:
+Access via browser at `http://login2.gpucluster.sutd.edu.sg:8888`
+
+Backup of everything on cluster:
 ```
-results/evaluation/comparison.json   ← final test metrics, all 3 models
-results/main/metrics.json            ← training history (loss curves)
-results/ablation/metrics.json        ← training history
-results/main/predictions.json        ← all test predictions
-results/ablation/predictions.json    ← all test predictions
-results/*/examples/*.png             ← qualitative prediction images
+~/SPATIAL-LLAVA_APR10/
+├── checkpoints/main/        ← trained weights (persistent)
+├── checkpoints/ablation/    ← trained weights (persistent)
+├── results/                 ← all metrics
+└── logs/                    ← training logs
 ```
 
-### Key Numbers (for report)
-| Model | Val IoU | Test IoU | RMSE | MAE |
-|---|---|---|---|---|
-| Baseline | 0.097 | 0.097 | 0.288 | 0.238 |
-| Ablation | 0.267 | 0.284 | 0.224 | 0.177 |
-| Main | 0.357 | 0.386 | 0.172 | 0.119 |
+Cluster setup:
+```bash
+git clone https://github.com/vincent-chengsheng-zheng/visual-grounding-api /tmp/visual-grounding-api
+cd /tmp/visual-grounding-api
+pip install flash-attn --no-cache-dir --no-build-isolation
+pip install -r requirements.txt --break-system-packages
+export TRANSFORMERS_OFFLINE=1
+cp -r ~/SPATIAL-LLAVA_APR10/checkpoints /tmp/visual-grounding-api/
+```
+
+---
+
+## Key Results (use in report)
+
+Evaluated on RefCOCO test split (1,975 samples):
+
+| Model | Val IoU | Test IoU | RMSE | MAE | Method |
+|---|---|---|---|---|---|
+| Baseline | 0.097 | 0.097 | 0.288 | 0.238 | Vanilla LLaVA + regex |
+| Ablation | 0.267 | 0.284 | 0.224 | 0.177 | Frozen LLaVA + MLP head |
+| **Main** | **0.357** | **0.386** | **0.172** | **0.119** | LoRA + MLP head |
+
+Improvements over baseline:
+- Ablation: **+192.7%** IoU
+- Main: **+297.5%** IoU
+
+All raw metrics in `results/evaluation/comparison.json`.
+
+---
+
+## What You Need to Build (Priority Order)
+
+### 1. FastAPI Server ← most important, do this first
+
+Create `api/server.py`. The API must expose:
+
+```
+POST /predict
+  Input:  { "image": "<base64>", "text": "the red chair", "model": "main" }
+  Output: { "bbox": [xc, yc, w, h], "model": "main", "inference_time_ms": 120 }
+
+GET  /health
+  Output: { "status": "ok", "models_loaded": true }
+
+GET  /models
+  Output: { "models": ["baseline", "ablation", "main"], "metrics": {...} }
+```
+
+**Model loading** (copy from `demo/demo_gradio.py`):
+```python
+import torch, os, sys
+sys.path.insert(0, '.')
+os.environ['TRANSFORMERS_OFFLINE'] = '1'
+
+from core.model.spatial_llava import load_model
+from core.model.llava import StandardLLaVA
+from core.paths import PATHS
+
+DEVICE = 'cuda'
+
+# Ablation
+ablation_model, ablation_processor = load_model(use_lora=False, device=DEVICE)
+ckpt = torch.load('checkpoints/ablation/best.pth', map_location=DEVICE)
+ablation_model.load_state_dict(ckpt['model_state'], strict=False)
+ablation_model.eval()
+
+# Main
+main_model, main_processor = load_model(use_lora=True, device=DEVICE)
+ckpt = torch.load('checkpoints/main/best.pth', map_location=DEVICE)
+main_model.load_state_dict(ckpt['model_state'], strict=False)
+main_model.eval()
+```
+
+**Inference on one image** (copy from `demo/demo_gradio.py`):
+```python
+from PIL import Image
+from core.data.preprocessing import PROMPT_TEMPLATE
+import base64, io, time
+
+def predict_single(image_b64: str, text: str, model, processor) -> dict:
+    img = Image.open(io.BytesIO(base64.b64decode(image_b64))).convert('RGB')
+    prompt = PROMPT_TEMPLATE.format(text=text)
+    inputs = processor(
+        text=[prompt], images=[img],
+        return_tensors='pt', padding=True,
+    ).to(DEVICE)
+    t0 = time.time()
+    with torch.no_grad():
+        pred = model(
+            inputs['input_ids'],
+            inputs['attention_mask'],
+            inputs['pixel_values'],
+        )
+    ms = (time.time() - t0) * 1000
+    return {'bbox': pred[0].cpu().tolist(), 'inference_time_ms': round(ms, 1)}
+```
+
+Run server:
+```bash
+cd /tmp/visual-grounding-api
+export TRANSFORMERS_OFFLINE=1
+uvicorn api.server:app --host 0.0.0.0 --port 8000
+```
+
+---
+
+### 2. Docker
+
+Create `infrastructure/docker/Dockerfile`:
+```dockerfile
+FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime
+
+WORKDIR /app
+COPY . .
+
+RUN pip install -r requirements.txt --no-cache-dir
+RUN pip install flash-attn --no-cache-dir --no-build-isolation
+
+EXPOSE 8000
+CMD ["uvicorn", "api.server:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+Build and run:
+```bash
+docker build -t visual-grounding-api .
+docker run --gpus all -p 8000:8000 visual-grounding-api
+```
+
+---
+
+### 3. Training Curves
+
+Create `notebooks/training_curves.ipynb`. Plot from existing JSON files:
+
+```python
+import json, matplotlib.pyplot as plt
+
+with open('results/main/metrics.json') as f:
+    main_m = json.load(f)
+with open('results/ablation/metrics.json') as f:
+    ablation_m = json.load(f)
+
+# Check what keys are available
+print(main_m.keys())
+
+# Plot val IoU per epoch
+# Save as results/training_curves.png for report
+```
+
+---
+
+### 4. Report (10-15 pages, NeurIPS format NOT required for Enterprise)
+
+Sections required by 61.502:
+
+1. **Executive Summary** (max 1 page)
+   - Problem: visual grounding via LLaVA + MLP
+   - Result: +297.5% IoU over baseline
+
+2. **Background & Introduction**
+   - Visual grounding, why it's hard, why it matters
+
+3. **Related Work**
+   - LLaVA-1.5, u-LLaVA, PixelLLM, GIoU loss
+
+4. **Problem Formulation**
+   - Input/output definition
+   - **Pipeline diagram** ← required by course (draw: Image+Text → LLaVA → [LOC] token → MLP → bbox)
+
+5. **Data Description**
+   - RefCOCO: 42,404 train / 3,811 val / 1,975 test
+   - Stats in `data/dataset_stats.json`
+
+6. **Method**
+   - Baseline (regex), Ablation (frozen + head), Main (LoRA + head)
+   - Architecture: 4096 → 512 → 256 → 4 + Sigmoid
+   - Loss: L1 + GIoU, lr=2e-4, batch=8, epochs=10
+
+7. **Experiments & Results**
+   - Results table (copy from above)
+   - **Training curves** ← required (plot from notebooks/training_curves.ipynb)
+   - **Qualitative examples** ← use images from `results/*/examples/`
+
+8. **Failure Cases** ← required
+   - Show bad predictions from `results/*/examples/`
+   - Discuss why: small objects, ambiguous expressions, truncated boxes
+
+9. **Deployment**
+   - FastAPI endpoints description
+   - Docker setup
+   - How to run, latency numbers
+
+10. **Discussion & Recommendations**
+
+11. **Limitations & Future Work**
+    - Larger LoRA rank, more training data, DETR-style head
+
+12. **Group Member Contributions** ← required
+    | Member | Contribution |
+    |---|---|
+    | Vincent | Architecture, training pipeline, evaluation, Gradio demo, repo |
+    | Member 2 | Gradio demo UI |
+    | Member 3 | Data preparation, training experiments |
+    | Member 4 | Report, presentation slides |
+
+---
+
+## Course Checklist (61.502)
+
+| Requirement | Status |
+|---|---|
+| Deep learning model | ✅ done |
+| Train/val/test split | ✅ done |
+| Baseline comparison | ✅ done |
+| RMSE + MAE metrics | ✅ done |
+| Well-structured repo + README | ✅ done |
+| requirements.txt | ✅ done |
+| Weights on Google Drive | ✅ done (links above) |
+| GitHub public repo | ✅ done |
+| FastAPI deployment | ⏳ **TODO — Priority 1** |
+| Docker | ⏳ **TODO — Priority 2** |
+| Training curves plot | ⏳ **TODO — Priority 3** |
+| Pipeline diagram | ⏳ **TODO — add to report** |
+| Failure case analysis | ⏳ **TODO — add to report** |
+| Group contributions section | ⏳ **TODO — add to report** |
+| Report (10-15 pages) | ⏳ **TODO — Priority 4** |
 
 ---
 
@@ -70,253 +283,28 @@ results/*/examples/*.png             ← qualitative prediction images
 
 ```
 visual-grounding-api/
-├── core/                          ← model, data, loss, utils (DO NOT TOUCH)
-├── pipeline/                      ← training + eval scripts (DO NOT TOUCH)
-├── results/                       ← all metrics and predictions (DO NOT TOUCH)
-├── logs/                          ← training logs (DO NOT TOUCH)
+├── core/                          ← DO NOT TOUCH
+├── pipeline/                      ← DO NOT TOUCH
+├── results/                       ← DO NOT TOUCH
+├── logs/                          ← DO NOT TOUCH
 ├── demo/
-│   └── demo_gradio.py             ← Gradio demo (already working)
-├── api/                           ← NEW: FastAPI server
+│   └── demo_gradio.py             ← working Gradio demo
+├── api/                           ← NEW
 │   ├── __init__.py
-│   ├── server.py                  ← main FastAPI app
-│   ├── schemas.py                 ← request/response models
-│   └── inference.py               ← model loading + inference logic
+│   ├── server.py                  ← FastAPI app
+│   ├── schemas.py                 ← Pydantic request/response models
+│   └── inference.py               ← model loading + inference
 ├── infrastructure/
 │   └── docker/
-│       ├── Dockerfile             ← NEW: production Dockerfile
-│       └── docker-compose.yml     ← NEW: compose file
+│       └── Dockerfile             ← NEW
 ├── notebooks/
-│   └── training_curves.ipynb      ← NEW: plot training curves from metrics.json
-├── shared/
-│   └── scripts/
-│       ├── setup_cluster.sh       ← cluster setup
-│       └── download_data.sh       ← data download
-├── data/                          ← pkl files (git-tracked)
-├── checkpoints/                   ← NOT git-tracked, download from Google Drive
-├── weights/                       ← NOT git-tracked, HuggingFace cache
-├── requirements.txt               ← already updated
-├── README.md                      ← needs enterprise-specific rewrite
-└── report/
-    └── report.pdf                 ← final submitted report
+│   └── training_curves.ipynb      ← NEW
+├── data/
+├── checkpoints/                   ← download from Google Drive (not in git)
+├── weights/                       ← HuggingFace cache (not in git)
+├── requirements.txt
+└── README.md                      ← needs enterprise rewrite
 ```
-
----
-
-## What You Need to Build
-
-### Priority 1: FastAPI Server (core requirement)
-File: `api/server.py`
-
-The API should expose:
-```
-POST /predict
-  Input:  { image: base64, text: str, model: "baseline"|"ablation"|"main" }
-  Output: { bbox: [xc, yc, w, h], model: str, inference_time_ms: float }
-
-GET /health
-  Output: { status: "ok", models_loaded: bool }
-
-GET /models
-  Output: { models: ["baseline", "ablation", "main"], metrics: {...} }
-```
-
-**How to load models** — copy from `demo/demo_gradio.py`:
-```python
-from core.model.spatial_llava import load_model
-from core.model.llava import StandardLLaVA
-from core.paths import PATHS
-import torch
-
-# Load on startup (once)
-ablation_model, ablation_processor = load_model(use_lora=False, device='cuda')
-ckpt = torch.load('checkpoints/ablation/best.pth', map_location='cuda')
-ablation_model.load_state_dict(ckpt['model_state'], strict=False)
-ablation_model.eval()
-
-main_model, main_processor = load_model(use_lora=True, device='cuda')
-ckpt = torch.load('checkpoints/main/best.pth', map_location='cuda')
-main_model.load_state_dict(ckpt['model_state'], strict=False)
-main_model.eval()
-```
-
-**How to run inference on one image** — copy from `demo/demo_gradio.py`:
-```python
-from PIL import Image
-import base64, io
-
-def predict_single(image_b64: str, text: str, model, processor, device='cuda'):
-    # Decode base64 image
-    img_bytes = base64.b64decode(image_b64)
-    image = Image.open(io.BytesIO(img_bytes)).convert('RGB')
-
-    from core.data.preprocessing import PROMPT_TEMPLATE
-    prompt = PROMPT_TEMPLATE.format(text=text)
-    inputs = processor(
-        text=[prompt], images=[image],
-        return_tensors='pt', padding=True,
-    ).to(device)
-    with torch.no_grad():
-        pred = model(
-            inputs['input_ids'],
-            inputs['attention_mask'],
-            inputs['pixel_values'],
-        )
-    return pred[0].cpu().tolist()  # [xc, yc, w, h]
-```
-
-Run server:
-```bash
-uvicorn api.server:app --host 0.0.0.0 --port 8000
-```
-
-### Priority 2: Docker
-File: `infrastructure/docker/Dockerfile`
-
-Base image: `pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime`
-
-Steps:
-1. Copy repo
-2. Install requirements
-3. Download weights (or mount volume)
-4. Expose port 8000
-5. CMD: `uvicorn api.server:app --host 0.0.0.0 --port 8000`
-
-### Priority 3: Training Curves
-File: `notebooks/training_curves.ipynb`
-
-Plot from `results/main/metrics.json` and `results/ablation/metrics.json`:
-- Training loss per epoch (L1 + GIoU)
-- Validation IoU per epoch
-- Side-by-side comparison: ablation vs main
-
-```python
-import json, matplotlib.pyplot as plt
-
-with open('results/main/metrics.json') as f:
-    main_metrics = json.load(f)
-with open('results/ablation/metrics.json') as f:
-    ablation_metrics = json.load(f)
-
-# metrics.json contains per-epoch train_loss, val_iou etc.
-# Plot and save as results/training_curves.png
-```
-
-### Priority 4: README (enterprise version)
-Must include:
-- How to download checkpoints from Google Drive
-- How to run FastAPI server
-- How to build Docker image
-- Exact commands to reproduce all results
-- Package dependencies
-
----
-
-## Course Requirements Checklist (61.502 Enterprise)
-
-| Requirement | Status | Notes |
-|---|---|---|
-| Deep learning model | ✅ done | LLaVA + LoRA + MLP head |
-| Custom dataset | ✅ done | RefCOCO (42k samples) |
-| Train/val/test split | ✅ done | 20k/1k/1975 |
-| Baseline comparison | ✅ done | 3 models |
-| RMSE + MAE metrics | ✅ done | in results/ |
-| Well-structured repo | ✅ done | |
-| requirements.txt | ✅ done | |
-| FastAPI deployment | ⏳ TODO | Priority 1 |
-| Docker | ⏳ TODO | Priority 2 |
-| Training curves | ⏳ TODO | Priority 3 |
-| Pipeline diagram | ⏳ TODO | add to report |
-| Failure case examples | ⏳ TODO | use results/*/examples/ |
-| Google Drive weights | ⏳ TODO | upload checkpoints |
-| Report (10-15 pages) | ⏳ TODO | Priority 4 |
-| GitHub public | ✅ done | |
-
----
-
-## Report Structure (10-15 pages)
-
-1. **Executive Summary** (1 page max)
-   - Problem: visual grounding via LLaVA + MLP head
-   - Result: IoU improved from 0.097 → 0.386 (+297.5%)
-
-2. **Background & Introduction**
-   - Visual grounding problem
-   - Why LLaVA needs modification
-   - RefCOCO dataset
-
-3. **Related Work**
-   - LLaVA-1.5 (Liu et al., NeurIPS 2023)
-   - u-LLaVA (Xu et al., ECAI 2024)
-   - PixelLLM (Xu et al., CVPR 2024)
-   - GIoU Loss (Rezatofighi et al., CVPR 2019)
-
-4. **Problem Formulation**
-   - Input: image + referring expression
-   - Output: [xc, yc, w, h] normalised bbox
-   - Architecture diagram (Image → LLaVA → [LOC] token → MLP → bbox)
-
-5. **Data Description**
-   - RefCOCO: 42,404 train / 3,811 val / 1,975 test
-   - Data stats in `data/dataset_stats.json`
-   - Preprocessing: prompt template, image resizing
-
-6. **Method**
-   - Baseline: regex parsing
-   - Ablation: frozen backbone + MLP head
-   - Main: LoRA (rank=16) + MLP head
-   - Loss: L1 + GIoU
-   - Training config: lr=2e-4, batch=8, epochs=10
-
-7. **Experiments & Results**
-   - Results table (copy from above)
-   - Training curves (from notebooks/training_curves.ipynb)
-   - Qualitative examples (from results/*/examples/)
-
-8. **Failure Cases**
-   - Show examples where model fails
-   - Discussion of why (small objects, ambiguous text, etc.)
-
-9. **Deployment**
-   - FastAPI server description
-   - Docker setup
-   - How to run
-
-10. **Conclusion & Future Work**
-    - Limitations
-    - Future: larger LoRA rank, more data, DETR head
-
----
-
-## Cluster Setup (if you need to retrain or run inference)
-
-```bash
-# If /tmp/ was cleared:
-git clone https://github.com/vincent-chengsheng-zheng/visual-grounding-api /tmp/SPATIAL-LLAVA
-cd /tmp/SPATIAL-LLAVA
-
-# Install dependencies
-pip install flash-attn --no-cache-dir --no-build-isolation
-pip install -r requirements.txt --break-system-packages
-
-# Set offline mode (weights already downloaded on cluster)
-export TRANSFORMERS_OFFLINE=1
-
-# Copy checkpoints from backup
-cp -r ~/SPATIAL-LLAVA_APR10/checkpoints /tmp/SPATIAL-LLAVA/
-```
-
----
-
-## Group Member Contributions
-
-| Member | Contribution |
-|---|---|
-| Vincent (you) | Architecture design, training pipeline, evaluation, Gradio demo, repo setup |
-| Member 2 | Gradio demo UI, testing |
-| Member 3 | Data preparation, training experiments |
-| Member 4 | Report writing, presentation slides |
-
-> Update this table with actual names before submission.
 
 ---
 
