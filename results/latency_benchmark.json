@@ -1,0 +1,55 @@
+{
+  "benchmark": {
+    "baseline": {
+      "model": "baseline",
+      "n_runs": 10,
+      "roundtrip_ms": {
+        "mean": 323.3,
+        "min": 322.8,
+        "max": 324.2
+      },
+      "gpu_inference_ms": {
+        "mean": 312.7,
+        "min": 312.4,
+        "max": 313.7
+      },
+      "api_overhead_ms": 10.6
+    },
+    "ablation": {
+      "model": "ablation",
+      "n_runs": 10,
+      "roundtrip_ms": {
+        "mean": 86.2,
+        "min": 84.7,
+        "max": 88.1
+      },
+      "gpu_inference_ms": {
+        "mean": 73.5,
+        "min": 73.1,
+        "max": 73.9
+      },
+      "api_overhead_ms": 12.7
+    },
+    "main": {
+      "model": "main",
+      "n_runs": 10,
+      "roundtrip_ms": {
+        "mean": 91.8,
+        "min": 89.7,
+        "max": 94.6
+      },
+      "gpu_inference_ms": {
+        "mean": 78.5,
+        "min": 78.0,
+        "max": 80.5
+      },
+      "api_overhead_ms": 13.3
+    }
+  },
+  "config": {
+    "image": "results/main/examples/example_0558.png",
+    "text": "the person",
+    "n_warmup": 2,
+    "n_runs": 10
+  }
+}
