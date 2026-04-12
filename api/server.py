@@ -88,6 +88,10 @@ async def predict(req: PredictRequest):
     - **text**: Referring expression, e.g. "the red chair"
     - **model**: One of "baseline", "ablation", "main" (default: "main")
     """
+    if not req.image or not req.image.strip():
+        raise HTTPException(status_code=400, detail="Image is required")
+    if not req.text or not req.text.strip():
+        raise HTTPException(status_code=400, detail="Text is required")
     if req.model not in registry.loaded_models:
         available = ", ".join(registry.loaded_models)
         raise HTTPException(
