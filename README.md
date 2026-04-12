@@ -80,6 +80,40 @@ All raw metrics in `results/evaluation/comparison.json`.
 
 ---
 
+## ⚠️ How This Differs from the GenAI Project (READ CAREFULLY)
+
+This is critical for the report and presentation. Both courses use the same underlying model, but the **story is completely different**. If the report reads like the GenAI report, it will be obvious we submitted the same work twice.
+
+**GenAI = Research story** → "Does replacing text generation with a regression head improve grounding?"
+**Enterprise = Deployment story** → "How do we ship this model as a production service for robotics/embodied AI?"
+
+The key differentiator is the **FastAPI server** — it transforms a research experiment into a deployable product. This must be the centrepiece of the Enterprise report and demo.
+
+**What makes the Enterprise version distinct:**
+
+| Aspect | GenAI | Enterprise |
+|---|---|---|
+| Framing | Academic research study | Production deployment |
+| Demo | Gradio side-by-side comparison | FastAPI with Swagger UI (`/docs`) |
+| Output | Pretty images with boxes | JSON response with bbox + latency |
+| Metrics focus | IoU, RMSE, MAE | + Inference latency (ms), throughput |
+| Failure analysis | Qualitative examples | Production risk assessment |
+| Report style | NeurIPS paper | Executive report with deployment section |
+
+**For the demo:** Open `http://server:8000/docs` — FastAPI auto-generates a professional Swagger UI where you can make live API calls. This looks completely different from Gradio and screams "enterprise". Show this in the presentation.
+
+**For the report:** Frame every section around the business use case — robotics, embodied AI, autonomous systems. The professor expects to see: how fast is it? can it handle concurrent requests? what happens when it fails in production? These questions never appear in the GenAI report.
+
+**Latency benchmarking is important** — measure and report:
+- Single image inference time (ms)
+- Batch inference throughput (images/sec)
+- Model loading time
+- API overhead vs raw inference
+
+This data goes in the report under "Deployment" and makes the Enterprise report uniquely valuable.
+
+---
+
 ## What You Need to Build (Priority Order)
 
 ### 1. FastAPI Server ← most important, do this first
