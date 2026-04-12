@@ -1,0 +1,10 @@
+.git
+frontend/node_modules
+frontend/build
+weights
+checkpoints
+data/coco
+__pycache__
+*.pyc
+.env
+logs
