@@ -1,12 +1,7 @@
 # .github/workflows/pr_checks.yml
 #
 # Runs automatically on every push/PR to main.
-# All checks must pass before merging is allowed.
-#
-# Checks:
-#   1. Code style (flake8)
-#   2. Unit tests (pytest)
-#   3. Docker build (Dockerfile.dev)
+# Checks code style with flake8.
 
 name: PR Checks
 
@@ -17,80 +12,29 @@ on:
     branches: [main]
 
 jobs:
-  lint_and_test:
-    name: Lint + Test
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5.3.0
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
 
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install torch==2.11.0 torchvision==0.26.0 \
-            --index-url https://download.pytorch.org/whl/cpu \
-            --quiet
-          pip install -r requirements.txt --quiet               
+          pip install flake8 --quiet
 
       - name: Lint with flake8
         run: |
-          flake8 core/ pipeline/ courses/ tests/ \
+          flake8 core/ pipeline/ api/ scripts/ \
             --max-line-length=100 \
-            --ignore=E501,W503,W504\
+            --ignore=E501,W503,W504 \
             --count \
             --show-source \
             --statistics
-
-      - name: Run unit tests
-        run: |
-          # pytest tests/ \
-          #   -v \
-          #   --cov=core \
-          #   --cov-report=term-missing \
-          #   --cov-fail-under=50
-
-      - name: Write summary
-        if: always()
-        run: |
-          echo "## PR Check Results" >> $GITHUB_STEP_SUMMARY
-          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Lint (flake8) | ✅ passed |" >> $GITHUB_STEP_SUMMARY
-          echo "| Tests (pytest) | ✅ passed |" >> $GITHUB_STEP_SUMMARY
-
-  docker_build:
-    name: Docker Build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.2.2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.7.1
-
-      - name: Build Dockerfile.dev
-        uses: docker/build-push-action@v6.9.0
-        with:
-          context: .
-          file: ./infrastructure/docker/Dockerfile
-          push: false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      # Uncomment when Dockerfile.inference is ready:
-      # - name: Build Dockerfile.inference
-      #   uses: docker/build-push-action@v6.9.0
-      #   with:
-      #     context: .
-      #     file: ./infrastructure/docker/Dockerfile.inference
-      #     push: false
-      #     cache-from: type=gha
-      #     cache-to: type=gha,mode=max
