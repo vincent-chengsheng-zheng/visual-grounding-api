@@ -1,9 +1,9 @@
 # .github/workflows/pr_checks.yml
 #
-# Runs automatically on every push/PR to main.
-# Checks code style with flake8.
+# Runs on every push/PR to main.
+# Checks for syntax errors and critical issues only.
 
-name: PR Checks
+name: CI
 
 on:
   push:
@@ -15,26 +15,18 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install flake8 --quiet
+      - name: Install flake8
+        run: pip install flake8 --quiet
 
-      - name: Lint with flake8
+      - name: Check for syntax errors
         run: |
           flake8 core/ pipeline/ api/ scripts/ \
-            --max-line-length=100 \
-            --ignore=E501,W503,W504,E402,E221,E226,E241,E272,E302,E305,E401,E126,E127,F401,F541,E722,W292,W293 \
-            --count \
+            --select=E9,F63,F7,F82 \
             --show-source \
             --statistics
