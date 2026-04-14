@@ -1,0 +1,97 @@
+[
+  {
+    "log": "step2_20260410_1531.log",
+    "epochs": 10,
+    "batch_size": 8,
+    "lr": 0.0002,
+    "lora_rank": 16,
+    "weight_decay": 0.0,
+    "max_length": 600,
+    "best_val_iou": 0.3574,
+    "best_epoch": 6,
+    "completed": true,
+    "final_metrics": {
+      "epoch": 6,
+      "val_loss": 0.8606,
+      "val_iou": 0.3574,
+      "val_rmse": 0.1954,
+      "val_mae": 0.1416
+    }
+  },
+  {
+    "log": "step2_20260410_1204.log",
+    "epochs": 5,
+    "batch_size": 16,
+    "lr": 0.0002,
+    "lora_rank": 16,
+    "weight_decay": 0.0,
+    "max_length": 600,
+    "best_val_iou": 0.2701,
+    "best_epoch": 5,
+    "completed": true,
+    "final_metrics": {
+      "epoch": 5,
+      "val_loss": 0.984,
+      "val_iou": 0.2701,
+      "val_rmse": 0.2409,
+      "val_mae": 0.1957
+    }
+  },
+  {
+    "log": "step3_20260411_0137.log",
+    "epochs": 10,
+    "batch_size": 8,
+    "lr": 0.0002,
+    "lora_rank": "?",
+    "weight_decay": 0.0,
+    "max_length": 600,
+    "best_val_iou": 0.2672,
+    "best_epoch": 10,
+    "completed": true,
+    "final_metrics": {
+      "epoch": 10,
+      "val_loss": 1.0,
+      "val_iou": 0.2672,
+      "val_rmse": 0.2308,
+      "val_mae": 0.1879
+    }
+  },
+  {
+    "log": "step2_20260410_1232.log",
+    "epochs": 5,
+    "batch_size": 16,
+    "lr": 5e-05,
+    "lora_rank": 16,
+    "weight_decay": 0.0,
+    "max_length": 600,
+    "best_val_iou": 0.2612,
+    "best_epoch": 5,
+    "completed": true,
+    "final_metrics": {
+      "epoch": 5,
+      "val_loss": 1.0171,
+      "val_iou": 0.2612,
+      "val_rmse": 0.2351,
+      "val_mae": 0.1951
+    }
+  },
+  {
+    "log": "step2_20260410_1301.log",
+    "epochs": 5,
+    "batch_size": 16,
+    "lr": 2e-05,
+    "lora_rank": 16,
+    "weight_decay": 0.0,
+    "max_length": 600,
+    "best_val_iou": 0.2464,
+    "best_epoch": 5,
+    "completed": true,
+    "final_metrics": {
+      "epoch": 5,
+      "val_loss": 1.0464,
+      "val_iou": 0.2464,
+      "val_rmse": 0.2624,
+      "val_mae": 0.2164
+    }
+  }
+]
