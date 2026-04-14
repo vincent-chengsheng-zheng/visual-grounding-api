@@ -1,0 +1,246 @@
+{
+  "model": "main",
+  "total_predictions": 1000,
+  "worst_cases": [
+    {
+      "rank": 1,
+      "text": "Bottom cat",
+      "iou": 0.0,
+      "failure_category": "ambiguous reference",
+      "gt_bbox": [
+        0.6089479327201843,
+        0.8736093640327454,
+        0.5462291836738586,
+        0.2527812421321869
+      ],
+      "pred_bbox": [
+        0.5932755470275879,
+        0.6000368595123291,
+        0.5121167302131653,
+        0.26166224479675293
+      ],
+      "image_path": "/tmp/SPATIAL-LLAVA/data/coco/train2014/COCO_train2014_000000579667.jpg"
+    },
+    {
+      "rank": 2,
+      "text": "left kid",
+      "iou": 0.0,
+      "failure_category": "wrong location",
+      "gt_bbox": [
+        0.17703905701637268,
+        0.511276125907898,
+        0.24710936844348907,
+        0.5185355544090271
+      ],
+      "pred_bbox": [
+        0.7077511548995972,
+        0.5815287232398987,
+        0.5393882393836975,
+        0.744474470615387
+      ],
+      "image_path": "/tmp/SPATIAL-LLAVA/data/coco/train2014/COCO_train2014_000000578805.jpg"
+    },
+    {
+      "rank": 3,
+      "text": "girl pink",
+      "iou": 0.0,
+      "failure_category": "wrong location",
+      "gt_bbox": [
+        0.3888906240463257,
+        0.3811715543270111,
+        0.19984374940395355,
+        0.38041841983795166
+      ],
+      "pred_bbox": [
+        0.7714172005653381,
+        0.5886640548706055,
+        0.4528217613697052,
+        0.7338153719902039
+      ],
+      "image_path": "/tmp/SPATIAL-LLAVA/data/coco/train2014/COCO_train2014_000000578805.jpg"
+    },
+    {
+      "rank": 4,
+      "text": "hitter",
+      "iou": 0.0,
+      "failure_category": "ambiguous reference",
+      "gt_bbox": [
+        0.6642031073570251,
+        0.5375149250030518,
+        0.25984373688697815,
+        0.729423463344574
+      ],
+      "pred_bbox": [
+        0.8990350961685181,
+        0.5398001074790955,
+        0.19538404047489166,
+        0.656967282295227
+      ],
+      "image_path": "/tmp/SPATIAL-LLAVA/data/coco/train2014/COCO_train2014_000000575826.jpg"
+    },
+    {
+      "rank": 5,
+      "text": "right one",
+      "iou": 0.0,
+      "failure_category": "wrong location",
+      "gt_bbox": [
+        0.8594200015068054,
+        0.5524343848228455,
+        0.22044000029563904,
+        0.5438192486763
+      ],
+      "pred_bbox": [
+        0.45158058404922485,
+        0.5621047019958496,
+        0.45399466156959534,
+        0.5370216965675354
+      ],
+      "image_path": "/tmp/SPATIAL-LLAVA/data/coco/train2014/COCO_train2014_000000574251.jpg"
+    },
+    {
+      "rank": 6,
+      "text": "top right bowl",
+      "iou": 0.0,
+      "failure_category": "wrong location",
+      "gt_bbox": [
+        0.7118203043937683,
+        0.20000000298023224,
+        0.23279687762260437,
+        0.23369412124156952
+      ],
+      "pred_bbox": [
+        0.29268649220466614,
+        0.5606865882873535,
+        0.4653419554233551,
+        0.4538347125053406
+      ],
+      "image_path": "/tmp/SPATIAL-LLAVA/data/coco/train2014/COCO_train2014_000000573632.jpg"
+    },
+    {
+      "rank": 7,
+      "text": "left half of right sandwich",
+      "iou": 0.0,
+      "failure_category": "wrong location",
+      "gt_bbox": [
+        0.7131953239440918,
+        0.5964117646217346,
+        0.2114218771457672,
+        0.3363058865070343
+      ],
+      "pred_bbox": [
+        0.25815293192863464,
+        0.542894184589386,
+        0.29977768659591675,
+        0.3721129298210144
+      ],
+      "image_path": "/tmp/SPATIAL-LLAVA/data/coco/train2014/COCO_train2014_000000573632.jpg"
+    },
+    {
+      "rank": 8,
+      "text": "2nd person from right",
+      "iou": 0.0,
+      "failure_category": "wrong location",
+      "gt_bbox": [
+        0.7623856067657471,
+        0.4628431499004364,
+        0.19143791496753693,
+        0.30179738998413086
+      ],
+      "pred_bbox": [
+        0.2854378819465637,
+        0.624226450920105,
+        0.3249422311782837,
+        0.49669739603996277
+      ],
+      "image_path": "/tmp/SPATIAL-LLAVA/data/coco/train2014/COCO_train2014_000000572949.jpg"
+    },
+    {
+      "rank": 9,
+      "text": "guy back navy 07",
+      "iou": 0.0,
+      "failure_category": "wrong location",
+      "gt_bbox": [
+        0.23494280874729156,
+        0.4473366141319275,
+        0.4398529529571533,
+        0.2285294085741043
+      ],
+      "pred_bbox": [
+        0.6598843336105347,
+        0.5805308222770691,
+        0.2944727838039398,
+        0.4210224151611328
+      ],
+      "image_path": "/tmp/SPATIAL-LLAVA/data/coco/train2014/COCO_train2014_000000572949.jpg"
+    },
+    {
+      "rank": 10,
+      "text": "left couch",
+      "iou": 0.0,
+      "failure_category": "wrong location",
+      "gt_bbox": [
+        0.20977124571800232,
+        0.7126797437667847,
+        0.41954249143600464,
+        0.5746405124664307
+      ],
+      "pred_bbox": [
+        0.7917621731758118,
+        0.6465939283370972,
+        0.37466567754745483,
+        0.5739700794219971
+      ],
+      "image_path": "/tmp/SPATIAL-LLAVA/data/coco/train2014/COCO_train2014_000000572949.jpg"
+    }
+  ],
+  "best_cases": [
+    {
+      "rank": 1,
+      "text": "Elephant in center with trunk out",
+      "iou": 0.911
+    },
+    {
+      "rank": 2,
+      "text": "lady",
+      "iou": 0.9111
+    },
+    {
+      "rank": 3,
+      "text": "sandwich on the right",
+      "iou": 0.9248
+    },
+    {
+      "rank": 4,
+      "text": "person on left",
+      "iou": 0.927
+    },
+    {
+      "rank": 5,
+      "text": "head in front taking picure",
+      "iou": 0.9416
+    }
+  ],
+  "failure_categories": {
+    "ambiguous reference": {
+      "count": 647,
+      "mean_iou": 0.4658,
+      "pct_of_total": 64.7
+    },
+    "complex expression": {
+      "count": 72,
+      "mean_iou": 0.4842,
+      "pct_of_total": 7.2
+    },
+    "correct location, wrong scale": {
+      "count": 25,
+      "mean_iou": 0.2596,
+      "pct_of_total": 2.5
+    },
+    "wrong location": {
+      "count": 256,
+      "mean_iou": 0.0538,
+      "pct_of_total": 25.6
+    }
+  },
+  "overall_mean_iou": 0.3565
+}

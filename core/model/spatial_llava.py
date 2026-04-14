@@ -72,6 +72,7 @@ class SpatialLLaVA(nn.Module):
         use_lora: bool = True,
         hidden_dim: int = HIDDEN_DIM,
         dropout: float = 0.1,
+        lora_rank: int = None,
     ):
         super().__init__()
         self.use_lora = use_lora
@@ -91,8 +92,12 @@ class SpatialLLaVA(nn.Module):
         if use_lora:
             # ── LoRA mode: inject adapters, freeze everything else ────
             print("[SpatialLLaVA] Applying LoRA to language model ...")
+            lora_cfg = None
+            if lora_rank is not None:
+                from core.model.lora_config import LoRAConfig
+                lora_cfg = LoRAConfig(r=lora_rank, lora_alpha=lora_rank * 2)
             self.backbone.model.language_model = apply_lora(
-                self.backbone.model.language_model
+                self.backbone.model.language_model, config=lora_cfg
             )
             # Freeze vision tower and projector (only LM gets LoRA)
             for param in self.backbone.model.vision_tower.parameters():
@@ -175,6 +180,7 @@ def load_model(
     use_lora: bool = True,
     device: str = "cuda",
     dropout: float = 0.1,
+    lora_rank: int = None,
 ):
     """
     Load SpatialLLaVA model + LlavaProcessor.
@@ -196,7 +202,7 @@ def load_model(
         cache_dir=str(PATHS.weights),
     )
 
-    model = SpatialLLaVA(use_lora=use_lora, dropout=dropout)
+    model = SpatialLLaVA(use_lora=use_lora, dropout=dropout, lora_rank=lora_rank)
     model = model.to(device)
 
     return model, processor
