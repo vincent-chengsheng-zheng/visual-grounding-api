@@ -182,11 +182,11 @@ Or run individual sections — the notebook reads from `results/main/metrics.jso
 ### Analysis plots:
 
 ```bash
-python scripts/bias_audit.py              # Bias audit (Figure 9)
-python scripts/failure_cases.py           # Failure analysis + IoU histogram (Figure 10)
-python scripts/accuracy_at_threshold.py   # Accuracy@threshold (Figure 4)
+python scripts/accuracy_at_threshold.py   # Accuracy@threshold (Figure 3)
+python scripts/bias_audit.py              # Bias audit by subgroup (Figure 8)
+python scripts/failure_cases.py           # Failure analysis + IoU histogram (Figure 9)
 python scripts/comparison_grid.py         # Main vs Ablation comparison (Figure 11)
-python scripts/parse_tuning_logs.py       # Hyperparameter tuning summary (Figure 2)
+python scripts/parse_tuning_logs.py       # Hyperparameter tuning summary
 ```
 
 **Figure reproduction index** is documented in the final cell of `notebooks/training_curves.ipynb`, listing every figure with its source data and reproduction command.
