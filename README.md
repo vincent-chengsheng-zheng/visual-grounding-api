@@ -242,6 +242,18 @@ Side-by-side comparison of all 3 models on any uploaded image.
 
 ### Docker
 
+**One-shot (API + frontend):**
+```bash
+docker compose up --build
+```
+
+This builds and starts:
+- `api` — FastAPI server on `http://localhost:8000` (uses `./weights` and `./checkpoints` mounted read-only, requires NVIDIA GPU)
+- `frontend` — React UI served by nginx on `http://localhost:3000`
+
+Stop with `docker compose down`.
+
+**API only (manual):**
 ```bash
 docker build -t visual-grounding-api -f infrastructure/docker/Dockerfile .
 docker run --gpus all -p 8000:8000 \

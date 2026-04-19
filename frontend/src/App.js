@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = '';
 
 const MODEL_INFO = {
   main:     { color: '#4dd4ac', label: 'Main',     method: 'LoRA + MLP head',         iou: 0.386, rmse: 0.172, mae: 0.119 },

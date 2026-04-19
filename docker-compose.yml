@@ -1,0 +1,41 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+    image: visual-grounding-api
+    container_name: vg-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./weights:/app/weights:ro
+      - ./checkpoints:/app/checkpoints:ro
+    environment:
+      TRANSFORMERS_OFFLINE: "1"
+      LOAD_MODE: sequential
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=2).status == 200 else 1)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 300s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: visual-grounding-frontend
+    container_name: vg-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    restart: unless-stopped
